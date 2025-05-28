@@ -1,0 +1,23 @@
+# Kafka producer
+kafka-python==2.0.2
+
+# Elasticsearch client
+elasticsearch==8.11.1
+
+# Spark Structured Streaming (used with PySpark)
+pyspark==3.5.1
+
+# For validating and structuring log data
+pydantic==2.6.4
+
+# Retry mechanism for robust log ingestion
+tenacity==8.2.3
+
+# Optional utilities
+python-dateutil==2.9.0.post0
+
+# Airflow for scheduling archival jobs (optional but powerful)
+apache-airflow==2.8.1
+
+# AWS SDK for archival to S3 (used inside Airflow DAG or Python scripts)
+boto3==1.34.87
