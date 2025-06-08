@@ -1,24 +1,27 @@
-version: '3.8'
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - log-pipeline-net
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9092:9092"     # for containers
+      - "29092:29092"   # for host access
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
+    networks:
+      - log-pipeline-net
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -29,6 +32,8 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - log-pipeline-net
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
@@ -37,6 +42,8 @@ services:
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
+    networks:
+      - log-pipeline-net
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.0
@@ -46,6 +53,8 @@ services:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - log-pipeline-net
 
   minio:
     image: minio/minio
@@ -58,6 +67,8 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
+    networks:
+      - log-pipeline-net
 
   postgres:
     image: postgres:13
@@ -67,6 +78,8 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+    networks:
+      - log-pipeline-net
 
   airflow-init:
     image: apache/airflow:2.9.1
@@ -77,6 +90,8 @@ services:
       - _AIRFLOW_WWW_USER_USERNAME=admin
       - _AIRFLOW_WWW_USER_PASSWORD=admin
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    networks:
+      - log-pipeline-net
 
   airflow-webserver:
     image: apache/airflow:2.9.1
@@ -89,9 +104,11 @@ services:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
     volumes:
       - ./airflow/dags:/opt/airflow/dags
+    networks:
+      - log-pipeline-net
 
   spark:
-    image: bitnami/spark:latest
+    build: ./spark-app
     environment:
       - SPARK_MODE=master
     ports:
@@ -99,11 +116,14 @@ services:
       - "8081:8081"
     volumes:
       - ./spark-app:/app
+    depends_on:
+      - kafka
+    networks:
+      - log-pipeline-net
 
 volumes:
   minio-data:
   postgres-db-volume:
 
 networks:
-  default:
-    name: log-pipeline-net
+  log-pipeline-net:

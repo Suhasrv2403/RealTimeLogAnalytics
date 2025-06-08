@@ -1,33 +1,40 @@
-from confluent_kafka import Consumer
-import json
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json, col
+from pyspark.sql.types import StructType, StringType
 
-conf = {
-    'bootstrap.servers': 'localhost:9092',
-    'group.id': 'manual-spark-batch-group',
-    'auto.offset.reset': 'earliest'
-}
+# Define the schema of your log messages
+schema = StructType() \
+    .add("timestamp", StringType()) \
+    .add("status", StringType()) \
+    .add("user", StringType())
 
-consumer = Consumer(conf)
-consumer.subscribe(['logs'])
+# Create Spark session
+spark = SparkSession.builder \
+    .appName("KafkaConsumer") \
+    .master("local[*]") \
+    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0") \
+    .getOrCreate()
+# Kafka bootstrap servers - use localhost:29092 if Kafka runs in Docker but exposed to host
+kafka_bootstrap_servers = "localhost:29092"
 
-batch = []
+# Read from Kafka topic 'logs'
+raw_df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+    .option("subscribe", "logs") \
+    .option("startingOffsets", "earliest") \
+    .load()
 
-try:
-    while True:
-        msg = consumer.poll(1.0)
-        if msg is None:
-            break  # no more messages
-        if msg.error():
-            print("Consumer error: {}".format(msg.error()))
-            continue
+# Kafka value is in bytes, cast to string
+logs_df = raw_df.selectExpr("CAST(value AS STRING) as json_str")
 
-        value = msg.value().decode('utf-8')
-        batch.append(value)
+# Parse JSON string to columns
+parsed_df = logs_df.select(from_json(col("json_str"), schema).alias("data")).select("data.*")
 
-finally:
-    consumer.close()
+# Output the streaming data to console
+query = parsed_df.writeStream \
+    .outputMode("append") \
+    .format("console") \
+    .start()
 
-# Save to file to pass to Spark
-with open('logs_batch.json', 'w') as f:
-    for line in batch:
-        f.write(json.dumps({'value': line}) + '\n')
+query.awaitTermination()

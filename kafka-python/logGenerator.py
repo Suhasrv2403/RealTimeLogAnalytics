@@ -9,7 +9,7 @@ log_status = ["put", "get", "auth", "rmi"]
 
 # Initialize the Kafka producer with JSON serialization
 producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',  # Kafka broker address
+    bootstrap_servers='localhost:29092',  # Kafka broker address
     value_serializer=lambda v: json.dumps(v).encode('utf-8')  # Serialize dictionary to JSON bytes
 )
 
