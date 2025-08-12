@@ -29,6 +29,7 @@ while True:
     # Send the log message to the 'logs' topic
     producer.send('logs', log)
 
+
     # Immediately send all buffered records to Kafka
     producer.flush()
 
