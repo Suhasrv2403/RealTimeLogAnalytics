@@ -56,8 +56,6 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - XPACK_SECURITY_ENABLED=false
       - SERVER_HOST=0.0.0.0
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=
     networks:
       - log-pipeline-net
 
@@ -151,6 +149,9 @@ services:
       CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
     volumes:
       - ./plugins:/etc/kafka-connect/jars
+      - ./connectors:/connectors
+      - ./deploy-connectors.sh:/etc/kafka-connect/deploy-connectors.sh
+    #command: [ "sh", "-c", "/etc/kafka-connect/deploy-connectors.sh && sleep infinity" ]
     networks:
       - log-pipeline-net
 
