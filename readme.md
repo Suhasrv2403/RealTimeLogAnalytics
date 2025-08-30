@@ -13,9 +13,9 @@ Search & Monitoring → Kafka Connect pushes logs directly from Kafka to Elastic
 
 
 
-
+---
 ## ⚡ Architecture
-'''text
+
 +-------------------+
 |   Log Producers   |
 +-------------------+
@@ -37,9 +37,9 @@ Search & Monitoring → Kafka Connect pushes logs directly from Kafka to Elastic
 |   (Parquet S3a)   |
 +-------------------+
 
-'''
 
 
+---
 
 
 
