@@ -39,12 +39,6 @@ Search & Monitoring → Kafka Connect pushes logs directly from Kafka to Elastic
 
 ---
 
-
-
-
-
-
-
 ## 🚀 Features
 
 Real-time log ingestion with Kafka
@@ -62,8 +56,6 @@ Fully containerized with Docker Compose
 Works with BI tools (Athena, Presto, dbt) and Observability tools (Grafana, Kibana)
 
 
-
----
 ---
 
 ## 🚀 Setup
