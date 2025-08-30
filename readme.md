@@ -3,7 +3,7 @@
 This project implements a real-time log analytics pipeline using modern data engineering tools:  
 **Kafka, Spark Structured Streaming, Elasticsearch, Kibana, Airflow**, and **Python**.
 
-Logs are ingested from a simulated log producer, processed in real time using Spark, indexed in Elasticsearch, and visualized via Kibana dashboards. Logs are archived to S3 using Airflow.
+Logs are ingested from a simulated log producer, processed in real time using Spark, indexed in Elasticsearch, and visualized via Kibana dashboards. Logs are archived to MinIO using Airflow.
 
 ---
 
@@ -16,7 +16,7 @@ Logs are ingested from a simulated log producer, processed in real time using Sp
 | Storage          | Elasticsearch          | Index logs for fast search             |
 | Visualization    | Kibana                 | Create dashboards from logs            |
 | Orchestration    | Apache Airflow         | Schedule archiving and cleanup         |
-| Archival (optional)| AWS S3 + Airflow      | Long-term log storage                  |
+| Archival | MinIO + Airflow      | Long-term log storage                  |
 | Containerization | Docker + Docker Compose| Service management                     |
 
 ---
