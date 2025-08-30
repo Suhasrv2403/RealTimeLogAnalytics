@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install lint/test tooling
+        # kafka-python is installed directly (rather than the full
+        # requirements.txt) because it's the only runtime dependency the
+        # test suite actually imports (scripts/kafka/*.py). pyspark is
+        # deliberately skipped here: src/spark/log_consumer.py isn't unit
+        # tested (it needs a live Spark/JVM session — see docs/DETAILS.md),
+        # and installing it would add several minutes to every CI run for
+        # no test coverage benefit.
+        run: pip install ruff pytest kafka-python
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Run tests
+        run: pytest

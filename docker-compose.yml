@@ -73,52 +73,23 @@ services:
     networks:
       - log-pipeline-net
 
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    networks:
-      - log-pipeline-net
-
-  airflow-init:
-    image: apache/airflow:2.9.1
-    depends_on:
-      - postgres
-    entrypoint: ["airflow", "db", "init"]
-    environment:
-      - _AIRFLOW_WWW_USER_USERNAME=admin
-      - _AIRFLOW_WWW_USER_PASSWORD=admin
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
-    networks:
-      - log-pipeline-net
-
-  airflow-webserver:
-    image: apache/airflow:2.9.1
-    depends_on:
-      - airflow-init
-    ports:
-      - "8082:8080"
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-    networks:
-      - log-pipeline-net
-
   spark:
-    build: ./spark-app
+    build:
+      context: .
+      dockerfile: docker/spark-app/Dockerfile
     environment:
       - SPARK_MODE=master
     ports:
       - "7077:7077"
       - "8081:8081"
     volumes:
-      - ./spark-app:/app
+      # Granular dev-loop mounts (edit locally, no rebuild needed) that
+      # mirror exactly what the Dockerfile COPYs, so they don't shadow
+      # each other when overlaid on /app.
+      - ./src/spark/log_consumer.py:/app/src/spark/log_consumer.py
+      - ./src/common:/app/src/common
+      - ./configs:/app/configs:ro
+      - ./docker/spark-app/run.sh:/app/run.sh
     depends_on:
       - kafka
       - minio
@@ -126,7 +97,7 @@ services:
       - log-pipeline-net
 
   kafka-connect:
-    image: kafka-connect-custom:7.5.0
+    build: ./docker/kafka-connect
     container_name: kafka-connect
     depends_on:
       - kafka
@@ -149,9 +120,8 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
     volumes:
-      - ./plugins:/etc/kafka-connect/jars
-      - ./connectors:/connectors
-      - ./deploy-connectors.sh:/etc/kafka-connect/deploy-connectors.sh
+      - ./configs/connectors:/connectors
+      - ./scripts/deploy_connectors.sh:/etc/kafka-connect/deploy-connectors.sh
     #command: [ "sh", "-c", "/etc/kafka-connect/deploy-connectors.sh && sleep infinity" ]
     networks:
       - log-pipeline-net
@@ -159,8 +129,6 @@ services:
 
 volumes:
   minio-data:
-  postgres-db-volume:
 
 networks:
   log-pipeline-net:
-

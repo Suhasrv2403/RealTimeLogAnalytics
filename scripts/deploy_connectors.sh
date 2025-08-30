@@ -1,17 +1,24 @@
 #!/bin/bash
 
+# Load pipeline config if present (see configs/pipeline.env); this script
+# still works with zero args / no config file via the defaults below.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+set -a
+[ -f "$REPO_ROOT/configs/pipeline.env" ] && source "$REPO_ROOT/configs/pipeline.env"
+set +a
+
 # URL for Kafka Connect REST API
-CONNECT_URL="http://localhost:18083"
+CONNECT_URL="${KAFKA_CONNECT_URL:-http://localhost:18083}"
 
 # Directory containing connector JSON files
-CONNECTOR_DIR="./connectors"
+CONNECTOR_DIR="$REPO_ROOT/configs/connectors"
 
 # Enable nullglob so the loop doesn’t fail if no files match
 shopt -s nullglob
 
 # Wait until Kafka Connect REST API is available
 echo "Waiting for Kafka Connect REST API..."
-until curl --output /dev/null --silent --head --fail $CONNECT_URL; do
+until curl --output /dev/null --silent --head --fail "$CONNECT_URL"; do
     printf '.'
     sleep 2
 done

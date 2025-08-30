@@ -1,0 +1,12 @@
+# Ruff config for CI linting.
+#
+# Pinned explicitly (rather than relying on ruff's ambient defaults) so lint
+# results are the same locally and in CI regardless of any user-level ruff
+# config. Scoped to pycodestyle errors + pyflakes only (E4, E7, E9, F) —
+# this is a small demo pipeline, not a library, so stricter opinionated
+# rule sets (import sorting, datetime timezone-awareness, blind-except
+# bans, etc.) are intentionally left off for now.
+line-length = 120
+
+[lint]
+select = ["E4", "E7", "E9", "F"]
