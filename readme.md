@@ -10,10 +10,6 @@ Search & Monitoring → Kafka Connect pushes logs directly from Kafka to Elastic
 
 ---
 
-
-
-
----
 ## ⚡ Architecture
 
 +-------------------+
