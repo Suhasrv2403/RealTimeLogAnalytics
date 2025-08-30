@@ -121,6 +121,7 @@ services:
       - ./spark-app:/app
     depends_on:
       - kafka
+      - minio
     networks:
       - log-pipeline-net
 
