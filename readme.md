@@ -34,3 +34,8 @@ cd log-analytics-pipeline
 ```bash
 docker-compose up -d
 ```
+
+### 3. Deploy Connector for Kafka to ElasticSearch
+```bash
+sh deploy-connectors.sh
+```
