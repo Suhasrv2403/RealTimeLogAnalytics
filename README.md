@@ -1,3 +1,5 @@
+[![CI](https://github.com/Suhasrv2403/RealTimeLogAnalytics/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/Suhasrv2403/RealTimeLogAnalytics/actions/workflows/ci.yml)
+
 # Real-Time Log Analytics Pipeline
 
 A containerized, real-time log analytics pipeline: synthetic application
